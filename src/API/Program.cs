@@ -3,9 +3,11 @@ using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddUserSecrets<Program>();
+
 builder.Services.AddControllers();
 builder.Services
-    .AddInfrastructure(builder.Configuration.GetConnectionString("DefaultConnection"))
+    .AddInfrastructure(builder.Configuration.GetConnectionString("imparDatabase"))
     .AddApplication();
 
 builder.Services.AddEndpointsApiExplorer();

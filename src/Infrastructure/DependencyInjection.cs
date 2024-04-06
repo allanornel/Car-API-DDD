@@ -1,8 +1,6 @@
 ﻿using Domain.Interfaces;
 using Infrastructure.Repository;
 using Microsoft.Extensions.DependencyInjection;
-using System.Data;
-using System.Data.SqlClient;
 
 namespace Infrastructure
 {
