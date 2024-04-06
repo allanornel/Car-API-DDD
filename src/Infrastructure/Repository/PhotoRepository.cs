@@ -22,11 +22,16 @@ namespace Infrastructure.Repository
             return await dbConnection.QueryFirstOrDefaultAsync<Photo>(query, new { Id = id });
         }
 
-        public async Task<int> AddAsync(string base64)
+        public async Task<Photo?> AddAsync(string base64)
         {
             string query = "INSERT INTO Photo (Base64) VALUES (@Base64); SELECT SCOPE_IDENTITY();";
             using IDbConnection dbConnection = _dbConnectionFactory.CreateConnection();
-            return await dbConnection.ExecuteScalarAsync<int>(query, new { Base64 = base64 });
+            int photoId = await dbConnection.QueryFirstOrDefaultAsync<int>(query, new { Base64 = base64 });
+            if (photoId == 0)
+            {
+                return null;
+            }
+            return await GetByIdAsync(photoId);
         }
     }
 }

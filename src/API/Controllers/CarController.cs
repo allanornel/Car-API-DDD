@@ -26,7 +26,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, "Something wrong happened.");
             }
         }
 
@@ -51,33 +51,71 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddCar(string name, IFormFile file)
         {
-            CarDTO carDTO;
-            if (file != null && file.Length > 0)
+            try
             {
-                if (!file.ContentType.StartsWith("image/"))
-                    return BadRequest("File is not an image");
-
-                using (var ms = new MemoryStream())
+                CarDTO carDTO;
+                if (file != null && file.Length > 0)
                 {
-                    file.CopyTo(ms);
-                    var fileBytes = ms.ToArray();
+                    if (!file.ContentType.StartsWith("image/"))
+                        return BadRequest("File is not an image");
 
-                    carDTO = new CarDTO(name, Convert.ToBase64String(fileBytes));
+                    using (var ms = new MemoryStream())
+                    {
+                        file.CopyTo(ms);
+                        var fileBytes = ms.ToArray();
+
+                        carDTO = new CarDTO(name, Convert.ToBase64String(fileBytes));
+                    }
+
+                    var car = await _carService.AddCar(carDTO);
+                    var uri = new Uri($"/api/cars/{car.Id}", UriKind.Relative);
+                    return Created(uri, car);
                 }
 
-                var car = await _carService.AddCar(carDTO);
-                var uri = new Uri($"/api/cars/{car.Id}", UriKind.Relative);
-                return Created(uri, car);
+                return BadRequest("File is empty");
             }
-
-            return BadRequest("File is empty");
-
+            catch
+            {
+                return StatusCode(500, "Error adding car");
+            }
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateCar([FromRoute] int id, [FromBody] CarDTO carDTO)
+        public IActionResult UpdateCar([FromRoute] int id, string? name, IFormFile? file)
         {
-            return Ok();
+            try
+            {
+                CarDTO carDTO;
+
+                if (file != null && file.Length > 0)
+                {
+                    if (!file.ContentType.StartsWith("image/"))
+                        return BadRequest("File is not an image");
+
+                    using (var ms = new MemoryStream())
+                    {
+                        file.CopyTo(ms);
+                        var fileBytes = ms.ToArray();
+
+                        carDTO = new CarDTO(name, Convert.ToBase64String(fileBytes));
+                    }
+                }
+                else
+                {
+                    carDTO = new CarDTO(name, "");
+                }
+
+                _carService.UpdateCar(id, carDTO);
+                return Ok();
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpDelete("{id}")]

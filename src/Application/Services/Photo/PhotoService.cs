@@ -13,23 +13,16 @@ namespace Application.Services.Photo
             _photoRepository = photoRepository;
         }
 
-        public async Task<PhotoResult> AddPhoto(PhotoDTO photoDTO)
+        public async Task<Domain.Entities.Photo?> AddPhoto(PhotoDTO photoDTO)
         {
             if (string.IsNullOrWhiteSpace(photoDTO.Base64))
             {
                 throw new ArgumentException("Base64 string cannot be empty or null.");
             }
-
-            int photoId = await _photoRepository.AddAsync(photoDTO.Base64);
-            return new PhotoResult(photoId, photoDTO.Base64);
+            return await _photoRepository.AddAsync(photoDTO.Base64); ;
         }
 
-        public Task<PhotoDTO> DeletePhoto(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<PhotoResult> GetPhoto(int id)
+        public async Task<Domain.Entities.Photo> GetPhoto(int id)
         {
             var photo = await _photoRepository.GetByIdAsync(id);
             if (photo == null)
@@ -37,17 +30,7 @@ namespace Application.Services.Photo
                 throw new NotFoundException($"Photo with ID {id} not found.");
             }
 
-            return new PhotoResult(photo.Id, photo.Base64);
-        }
-
-        public Task<PhotoDTO> UpdatePhoto(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<PhotoDTO> IPhotoService.GetPhoto(int id)
-        {
-            throw new NotImplementedException();
+            return photo;
         }
     }
 }

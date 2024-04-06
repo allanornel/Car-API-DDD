@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Models;
+using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Interfaces;
 
@@ -54,9 +55,27 @@ namespace Application.Services.Car
             return cars;
         }
 
-        public Task<CarDTO> UpdateCar(int id)
+        public async Task UpdateCar(int id, CarDTO carDTO)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(carDTO.Base64) && string.IsNullOrEmpty(carDTO.Name))
+            {
+                throw new Exception("Name or File must be provided");
+            }
+
+            Domain.Entities.Car car = await _carRepository.GetByIdAsync(id) ?? throw new NotFoundException($"Car with ID {id} not found");
+
+            if (!string.IsNullOrEmpty(carDTO.Base64))
+            {
+                car.Photo.Base64 = carDTO.Base64;
+            }
+
+            if (!string.IsNullOrEmpty(carDTO.Name))
+            {
+                car.Name = carDTO.Name;
+            }
+
+            await _carRepository.UpdateAsync(car);
+
         }
     }
 }

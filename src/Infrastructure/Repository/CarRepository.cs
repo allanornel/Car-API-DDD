@@ -20,10 +20,6 @@ namespace Infrastructure.Repository
                      INNER JOIN Photo p ON c.PhotoId = p.Id
                      WHERE c.Id = @Id";
             using IDbConnection dbConnection = _dbConnectionFactory.CreateConnection();
-            string queryTst = "SELECT TOP 1 * FROM Car";
-
-            var tst = await dbConnection.QueryFirstOrDefaultAsync<Car>(queryTst);
-
 
             var car = await dbConnection.QueryAsync<Car, Photo, Car>(
                 query,
@@ -75,6 +71,7 @@ namespace Infrastructure.Repository
         {
             using (IDbConnection dbConnection = _dbConnectionFactory.CreateConnection())
             {
+                dbConnection.Open();
                 using (var transaction = dbConnection.BeginTransaction())
                 {
                     try
@@ -83,7 +80,7 @@ namespace Infrastructure.Repository
                                       SELECT SCOPE_IDENTITY();";
                         int photoId = await dbConnection.ExecuteScalarAsync<int>(photoQuery, new { base64 }, transaction);
 
-                        string carQuery = @"INSERT INTO Car (PhotoId, Name, Status) VALUES (@PhotoId, @Name, 1);";
+                        string carQuery = @"INSERT INTO Car (PhotoId, Name, Status) VALUES (@PhotoId, @Name, 1); SELECT SCOPE_IDENTITY();";
                         int createdCarId = await dbConnection.ExecuteScalarAsync<int>(carQuery, new { PhotoId = photoId, Name = name }, transaction);
 
                         transaction.Commit();
@@ -103,6 +100,7 @@ namespace Infrastructure.Repository
         {
             using (IDbConnection dbConnection = _dbConnectionFactory.CreateConnection())
             {
+                dbConnection.Open();
                 using (var transaction = dbConnection.BeginTransaction())
                 {
                     try
