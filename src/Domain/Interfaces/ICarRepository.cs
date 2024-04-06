@@ -6,7 +6,7 @@ namespace Domain.Interfaces
     {
         Task<Car?> GetByIdAsync(int id);
         Task<IEnumerable<Car>> GetAllAsync(string query, int page);
-        Task AddAsync(Car car);
+        Task<Car> AddAsync(string name, string base64);
         Task UpdateAsync(Car car);
         Task<int> DeleteAsync(int id);
     }

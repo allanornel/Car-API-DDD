@@ -15,9 +15,10 @@ namespace Application.Services.Car
             _carRepository = carRepository;
             _photoRepository = photoRepository;
         }
-        public async Task<CarResult> AddCar(CarDTO carDTO)
+        public async Task<Domain.Entities.Car> AddCar(CarDTO carDTO)
         {
-            return new CarResult(1, carDTO.Name, carDTO.Status);
+            var car = await _carRepository.AddAsync(carDTO.Name, carDTO.Base64);
+            return car;
         }
 
         public async Task DeleteCar(int id)
@@ -42,7 +43,7 @@ namespace Application.Services.Car
 
         public async Task<List<CarModel>> GetCars(string query, int page)
         {
-            List<CarModel> cars = new();
+            List<CarModel> cars = new List<CarModel>();
 
             var dbCars = await _carRepository.GetAllAsync(query, page);
             foreach (var car in dbCars)

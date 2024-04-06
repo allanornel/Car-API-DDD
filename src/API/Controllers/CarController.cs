@@ -17,10 +17,17 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCars([FromQuery] string query = "", [FromQuery] int page = 0)
+        public async Task<IActionResult> GetCars([FromQuery] string? query = "", [FromQuery] int page = 1)
         {
-            var carsModel = await _carService.GetCars(query, page);
-            return Ok(carsModel);
+            try
+            {
+                var carsModel = await _carService.GetCars(query, page);
+                return Ok(carsModel);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpGet("{id}")]
@@ -42,15 +49,33 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCar(CarDTO carDTO)
+        public async Task<IActionResult> AddCar(string name, IFormFile file)
         {
-            var carResult = await _carService.AddCar(carDTO);
-            var uri = new Uri($"/api/cars/{carResult.Id}", UriKind.Relative);
-            return Created(uri, carResult);
+            CarDTO carDTO;
+            if (file != null && file.Length > 0)
+            {
+                if (!file.ContentType.StartsWith("image/"))
+                    return BadRequest("File is not an image");
+
+                using (var ms = new MemoryStream())
+                {
+                    file.CopyTo(ms);
+                    var fileBytes = ms.ToArray();
+
+                    carDTO = new CarDTO(name, Convert.ToBase64String(fileBytes));
+                }
+
+                var car = await _carService.AddCar(carDTO);
+                var uri = new Uri($"/api/cars/{car.Id}", UriKind.Relative);
+                return Created(uri, car);
+            }
+
+            return BadRequest("File is empty");
+
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateCar([FromRoute] int id)
+        public IActionResult UpdateCar([FromRoute] int id, [FromBody] CarDTO carDTO)
         {
             return Ok();
         }

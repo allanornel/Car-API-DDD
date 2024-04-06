@@ -4,6 +4,6 @@
     (
         int Id,
         string Name,
-        string Status
+        int Status
     );
 }
