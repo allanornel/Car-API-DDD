@@ -21,8 +21,8 @@ namespace API.Controllers
         {
             try
             {
-                var carsModel = await _carService.GetCars(query, page);
-                return Ok(carsModel);
+                var paginationModel = await _carService.GetCars(query, page);
+                return Ok(paginationModel);
             }
             catch (Exception ex)
             {

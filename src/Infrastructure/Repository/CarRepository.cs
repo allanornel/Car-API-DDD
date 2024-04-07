@@ -34,25 +34,34 @@ namespace Infrastructure.Repository
             return car.FirstOrDefault();
         }
 
-        public async Task<IEnumerable<Car>> GetAllAsync(string searchQuery, int page)
+        public async Task<Tuple<IEnumerable<Car>, int, int>> GetAllAsync(string searchQuery, int page)
         {
             const int PAGE_SIZE = 10;
+            string queryCount = @"SELECT COUNT(*) FROM Car c
+                          INNER JOIN Photo p ON c.PhotoId = p.Id
+                          WHERE Status = 1";
+
             string query = @"SELECT c.Id, c.Name, c.Status, p.Id as PhotoId, p.Base64 FROM Car c
                      INNER JOIN Photo p ON c.PhotoId = p.Id
                      WHERE Status = 1";
+
             DynamicParameters parameters = new DynamicParameters();
 
             if (!string.IsNullOrEmpty(searchQuery))
             {
                 query += " AND c.Name LIKE @SearchQuery";
+                queryCount += " AND c.Name LIKE @SearchQuery";
                 parameters.Add("@SearchQuery", "%" + searchQuery + "%");
             }
+            using IDbConnection dbConnection = _dbConnectionFactory.CreateConnection();
+
+            int totalCars = await dbConnection.ExecuteScalarAsync<int>(queryCount, parameters);
+            int totalPages = (int)Math.Ceiling((double)totalCars / PAGE_SIZE);
 
             query += " ORDER BY c.id desc OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             parameters.Add("@Offset", (page - 1) * PAGE_SIZE);
             parameters.Add("@PageSize", PAGE_SIZE);
 
-            using IDbConnection dbConnection = _dbConnectionFactory.CreateConnection();
             var cars = await dbConnection.QueryAsync<Car, Photo, Car>(
                 query,
                 (car, photo) =>
@@ -64,7 +73,7 @@ namespace Infrastructure.Repository
                 param: parameters
             );
 
-            return cars;
+            return new Tuple<IEnumerable<Car>, int, int>(cars, totalCars, totalPages);
         }
 
         public async Task<Car> AddAsync(string name, string base64)

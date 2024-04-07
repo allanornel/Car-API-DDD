@@ -44,17 +44,20 @@ namespace Application.Services.Car
             return new CarModel(id, car.Name, car.Photo.Base64);
         }
 
-        public async Task<List<CarModel>> GetCars(string query, int page)
+        public async Task<PaginationModel<CarModel>> GetCars(string query, int page)
         {
             List<CarModel> cars = new List<CarModel>();
 
-            var dbCars = await _carRepository.GetAllAsync(query, page);
+            var tupleCars = await _carRepository.GetAllAsync(query, page);
+            var dbCars = tupleCars.Item1;
             foreach (var car in dbCars)
             {
                 cars.Add(new CarModel(car.Id, car.Name, car.Photo.Base64));
             }
+            int totalItems = tupleCars.Item2;
+            int totalPages = tupleCars.Item3;
 
-            return cars;
+            return new PaginationModel<CarModel> { Items = cars, TotalItems = totalItems, TotalPages = totalPages };
         }
 
         public async Task UpdateCar(int id, CarDTO carDTO)

@@ -5,7 +5,7 @@ namespace Application.Services.Car
 {
     public interface ICarService
     {
-        Task<List<CarModel>> GetCars(string query, int page);
+        Task<PaginationModel<CarModel>> GetCars(string query, int page);
         Task<CarModel> GetCar(int id);
         Task<Domain.Entities.Car> AddCar(CarDTO carDTO);
         Task UpdateCar(int id, CarDTO carDTO);
