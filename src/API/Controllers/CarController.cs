@@ -49,7 +49,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCar(string name, IFormFile file)
+        public async Task<IActionResult> AddCar([FromForm] string name, [FromForm] IFormFile file)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace API.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateCar([FromRoute] int id, string? name, IFormFile? file)
+        public async Task<IActionResult> UpdateCar([FromRoute] int id, [FromForm] string? name, [FromForm] IFormFile? file)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace API.Controllers
                     carDTO = new CarDTO(name, "");
                 }
 
-                _carService.UpdateCar(id, carDTO);
+                await _carService.UpdateCar(id, carDTO);
                 return Ok();
             }
             catch (NotFoundException ex)

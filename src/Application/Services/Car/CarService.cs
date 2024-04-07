@@ -9,15 +9,17 @@ namespace Application.Services.Car
     public class CarService : ICarService
     {
         ICarRepository _carRepository;
-        IPhotoRepository _photoRepository;
 
         public CarService(ICarRepository carRepository, IPhotoRepository photoRepository)
         {
             _carRepository = carRepository;
-            _photoRepository = photoRepository;
         }
         public async Task<Domain.Entities.Car> AddCar(CarDTO carDTO)
         {
+            if (string.IsNullOrEmpty(carDTO.Base64) || string.IsNullOrEmpty(carDTO.Name))
+            {
+                throw new Exception("Name and File must be provided");
+            }
             var car = await _carRepository.AddAsync(carDTO.Name, carDTO.Base64);
             return car;
         }

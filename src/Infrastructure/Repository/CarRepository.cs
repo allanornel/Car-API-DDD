@@ -48,7 +48,7 @@ namespace Infrastructure.Repository
                 parameters.Add("@SearchQuery", "%" + searchQuery + "%");
             }
 
-            query += " ORDER BY c.Name OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+            query += " ORDER BY c.id desc OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
             parameters.Add("@Offset", (page - 1) * PAGE_SIZE);
             parameters.Add("@PageSize", PAGE_SIZE);
 

@@ -17,6 +17,10 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseCors(builder => builder
+           .AllowAnyOrigin()
+           .AllowAnyMethod()
+           .AllowAnyHeader());
     app.UseSwagger();
     app.UseSwaggerUI();
 }
