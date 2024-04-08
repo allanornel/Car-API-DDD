@@ -22,7 +22,7 @@ if (app.Environment.IsDevelopment())
            .AllowAnyMethod()
            .AllowAnyHeader());
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(); 
 }
 
 app.UseHttpsRedirection();
