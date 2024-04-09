@@ -2,6 +2,7 @@
 using Application.Services.Car;
 using Application.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using API.Util;
 
 namespace API.Controllers
 {
@@ -26,7 +27,7 @@ namespace API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Something wrong happened.");
+                return StatusCode(500, new ErrorMessage("Something wrong happened."));
             }
         }
 
@@ -40,11 +41,11 @@ namespace API.Controllers
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(new ErrorMessage(ex.Message));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, new ErrorMessage(ex.Message));
             }
         }
 
@@ -63,11 +64,11 @@ namespace API.Controllers
             }
             catch (BadHttpRequestException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new ErrorMessage(ex.Message));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Error adding car");
+                return StatusCode(500, new ErrorMessage("Error adding car"));
             }
         }
 
@@ -78,15 +79,15 @@ namespace API.Controllers
             {
                 CarDTO carDTO = await ProcessCarDTO(name, file);
                 await _carService.UpdateCar(id, carDTO);
-                return Ok();
+                return NoContent();
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(new ErrorMessage(ex.Message));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, new ErrorMessage(ex.Message));
             }
         }
 
@@ -96,15 +97,15 @@ namespace API.Controllers
             try
             {
                 await _carService.DeleteCar(id);
-                return Ok();
+                return NoContent();
             }
             catch (NotFoundException ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(new ErrorMessage(ex.Message));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, new ErrorMessage(ex.Message));
             }
         }
 
