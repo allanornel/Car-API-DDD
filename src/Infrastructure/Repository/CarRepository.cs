@@ -34,25 +34,26 @@ namespace Infrastructure.Repository
             return car.FirstOrDefault();
         }
 
-        public async Task<Tuple<IEnumerable<Car>, int, int>> GetAllAsync(string searchQuery, int page)
+        public async Task<Tuple<IEnumerable<Car>, int, int>> GetAllAsync(string? searchQuery, int page)
         {
             const int PAGE_SIZE = 10;
+            string whereClause = "WHERE Status = 1";
             string queryCount = @"SELECT COUNT(*) FROM Car c
-                          INNER JOIN Photo p ON c.PhotoId = p.Id
-                          WHERE Status = 1";
+                          INNER JOIN Photo p ON c.PhotoId = p.Id ";
 
-            string query = @"SELECT c.Id, c.Name, c.Status, p.Id as PhotoId, p.Base64 FROM Car c
-                     INNER JOIN Photo p ON c.PhotoId = p.Id
-                     WHERE Status = 1";
+            string query = @"SELECT * FROM Car c
+                     INNER JOIN Photo p ON c.PhotoId = p.Id ";
 
             DynamicParameters parameters = new DynamicParameters();
 
             if (!string.IsNullOrEmpty(searchQuery))
             {
-                query += " AND c.Name LIKE @SearchQuery";
-                queryCount += " AND c.Name LIKE @SearchQuery";
+                whereClause += " AND c.Name LIKE @SearchQuery";
                 parameters.Add("@SearchQuery", "%" + searchQuery + "%");
             }
+            query += whereClause;
+            queryCount += whereClause;
+
             using IDbConnection dbConnection = _dbConnectionFactory.CreateConnection();
 
             int totalCars = await dbConnection.ExecuteScalarAsync<int>(queryCount, parameters);
@@ -69,7 +70,6 @@ namespace Infrastructure.Repository
                     car.Photo = photo;
                     return car;
                 },
-                splitOn: "PhotoId",
                 param: parameters
             );
 
@@ -115,7 +115,7 @@ namespace Infrastructure.Repository
                     try
                     {
                         string photoQuery = @"UPDATE Photo SET Base64 = @Base64 WHERE Id = @PhotoId";
-                        await dbConnection.ExecuteAsync(photoQuery, new { Base64 = car.Photo.Base64, PhotoId = car.PhotoId }, transaction);
+                        await dbConnection.ExecuteAsync(photoQuery, new { Base64 = car.Photo.Base64, PhotoId = car.Photo.Id }, transaction);
                         string carQuery = @"UPDATE Car SET Name = @Name WHERE Id = @Id";
                         await dbConnection.ExecuteAsync(carQuery, new { Name = car.Name, Id = car.Id }, transaction);
 

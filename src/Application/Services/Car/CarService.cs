@@ -1,7 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Models;
-using Domain.Entities;
-using Domain.Exceptions;
+using Application.Exceptions;
 using Domain.Interfaces;
 
 namespace Application.Services.Car
@@ -20,7 +19,7 @@ namespace Application.Services.Car
             {
                 throw new Exception("Name and File must be provided");
             }
-            var car = await _carRepository.AddAsync(carDTO.Name, carDTO.Base64);
+            var car = await _carRepository.AddAsync(carDTO.Name, carDTO.Base64) ?? throw new Exception("Error adding car");
             return car;
         }
 
@@ -44,7 +43,7 @@ namespace Application.Services.Car
             return new CarModel(id, car.Name, car.Photo.Base64);
         }
 
-        public async Task<PaginationModel<CarModel>> GetCars(string query, int page)
+        public async Task<PaginationModel<CarModel>> GetCars(string? query, int page)
         {
             List<CarModel> cars = new List<CarModel>();
 

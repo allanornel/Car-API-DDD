@@ -1,6 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Services.Car;
-using Domain.Exceptions;
+using Application.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -53,28 +53,19 @@ namespace API.Controllers
         {
             try
             {
-                CarDTO carDTO;
-                if (file != null && file.Length > 0)
-                {
-                    if (!file.ContentType.StartsWith("image/"))
-                        return BadRequest("File is not an image");
+                if (file == null || file.Length == 0)
+                    return BadRequest("File is empty");
 
-                    using (var ms = new MemoryStream())
-                    {
-                        file.CopyTo(ms);
-                        var fileBytes = ms.ToArray();
-
-                        carDTO = new CarDTO(name, Convert.ToBase64String(fileBytes));
-                    }
-
-                    var car = await _carService.AddCar(carDTO);
-                    var uri = new Uri($"/api/cars/{car.Id}", UriKind.Relative);
-                    return Created(uri, car);
-                }
-
-                return BadRequest("File is empty");
+                CarDTO carDTO = await ProcessCarDTO(name, file);
+                var car = await _carService.AddCar(carDTO);
+                var uri = new Uri($"/api/cars/{car.Id}", UriKind.Relative);
+                return Created(uri, car);
             }
-            catch
+            catch (BadHttpRequestException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, "Error adding car");
             }
@@ -85,26 +76,7 @@ namespace API.Controllers
         {
             try
             {
-                CarDTO carDTO;
-
-                if (file != null && file.Length > 0)
-                {
-                    if (!file.ContentType.StartsWith("image/"))
-                        return BadRequest("File is not an image");
-
-                    using (var ms = new MemoryStream())
-                    {
-                        file.CopyTo(ms);
-                        var fileBytes = ms.ToArray();
-
-                        carDTO = new CarDTO(name, Convert.ToBase64String(fileBytes));
-                    }
-                }
-                else
-                {
-                    carDTO = new CarDTO(name, "");
-                }
-
+                CarDTO carDTO = await ProcessCarDTO(name, file);
                 await _carService.UpdateCar(id, carDTO);
                 return Ok();
             }
@@ -133,6 +105,26 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+        private async Task<CarDTO> ProcessCarDTO(string? name, IFormFile? file)
+        {
+            if (file != null && file.Length > 0)
+            {
+                if (!file.ContentType.StartsWith("image/"))
+                    throw new BadHttpRequestException("File is not an image");
+
+                using (var ms = new MemoryStream())
+                {
+                    await file.CopyToAsync(ms);
+                    var fileBytes = ms.ToArray();
+                    return new CarDTO(name, $"data:{file.ContentType};base64,{Convert.ToBase64String(fileBytes)}");
+                }
+            }
+            else
+            {
+                return new CarDTO(name, "");
             }
         }
     }
